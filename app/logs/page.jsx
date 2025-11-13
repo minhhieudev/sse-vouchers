@@ -257,7 +257,7 @@ export default function LogsPage() {
                     }
                     value={query}
                     onValueChange={setQuery}
-                    className="min-w-[400px]"
+                    className="w-full sm:min-w-[400px]"
                     classNames={{
                       inputWrapper:
                         "rounded-xl border-2 border-purple-200/60 bg-gradient-to-r from-purple-50/80 to-pink-50/80 backdrop-blur-sm shadow-lg shadow-purple-200/30 hover:border-purple-300 hover:shadow-xl hover:shadow-purple-300/50 hover:from-purple-100/90 hover:to-pink-100/90 transition-all duration-300 focus-within:ring-2 focus-within:ring-purple-500/30",
@@ -346,7 +346,7 @@ export default function LogsPage() {
                     </SelectItem>
                   </Select>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-center">
                   <Button
                     variant="bordered"
                     className="border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 shadow-md shadow-amber-200/25 transition-all duration-300 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-300/40 hover:scale-105"
