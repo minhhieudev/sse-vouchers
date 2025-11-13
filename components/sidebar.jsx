@@ -52,29 +52,29 @@ export const Sidebar = () => {
             <button
               type="button"
               onClick={toggleSidebar}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-sm font-bold text-white shadow"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl shadow hover:shadow-lg transition-shadow"
               aria-label="Mở rộng sidebar"
             >
-              {shortName}
+              <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-xl" />
             </button>
           ) : (
             <Link
               href="/"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-sm font-bold text-white shadow"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl shadow hover:shadow-lg transition-shadow"
             >
-              {shortName}
+              <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-xl" />
             </Link>
           )}
           {!sidebarCollapsed && (
             <div>
-              <p className="text-sm font-semibold text-slate-900">{shortName}</p>
+              <p className="text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">{shortName}</p>
             </div>
           )}
           {!sidebarCollapsed && (
             <button
               type="button"
               onClick={toggleSidebar}
-              className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+              className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-all hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 hover:shadow-md"
               aria-label="Thu gọn sidebar"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -142,14 +142,14 @@ export const Sidebar = () => {
         <div className="flex h-12 items-center justify-between border-b border-slate-200 px-4">
           <Link
             href="/"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-sm font-bold text-white shadow"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl shadow hover:shadow-lg transition-shadow"
           >
-            {shortName}
+            <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-xl" />
           </Link>
           <button
             type="button"
             onClick={closeMobileSidebar}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-all hover:bg-red-50 hover:text-red-600 hover:border-red-300 hover:shadow-md"
             aria-label="Đóng sidebar"
           >
             <X className="h-4 w-4" />
