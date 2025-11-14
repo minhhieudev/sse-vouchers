@@ -1,6 +1,7 @@
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { DatePicker } from "@heroui/date-picker";
+import { useToast } from "@/hooks";
 import {
   X,
   Sparkles
@@ -10,26 +11,15 @@ export default function CampaignModal({
   showCreateModal,
   setShowCreateModal,
   editingCampaign,
-  setEditingCampaign,
-  newCampaignName,
-  setNewCampaignName,
-  newCampaignDescription,
-  setNewCampaignDescription,
-  newCampaignStartDate,
-  setNewCampaignStartDate,
-  newCampaignEndDate,
-  setNewCampaignEndDate,
-  newCampaignChannel,
-  setNewCampaignChannel,
-  newCampaignBudget,
-  setNewCampaignBudget,
-  handleCreateCampaign,
-  handleEditCampaign
+  formData,
+  updateFormData,
+  onSubmit
 }) {
+  const { warning } = useToast();
   return (
     <>
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between">
               <div>
@@ -60,8 +50,8 @@ export default function CampaignModal({
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Input
                 label="Tên chiến dịch"
-                value={newCampaignName}
-                onValueChange={setNewCampaignName}
+                value={formData.name}
+                onValueChange={(value) => updateFormData("name", value)}
                 placeholder="Ví dụ: Khuyến mãi tháng 11"
                 classNames={{
                   inputWrapper:
@@ -71,8 +61,8 @@ export default function CampaignModal({
               />
               <Input
                 label="Mô tả"
-                value={newCampaignDescription}
-                onValueChange={setNewCampaignDescription}
+                value={formData.description}
+                onValueChange={(value) => updateFormData("description", value)}
                 placeholder="Mô tả ngắn gọn về chiến dịch"
                 classNames={{
                   inputWrapper:
@@ -82,8 +72,8 @@ export default function CampaignModal({
               />
               <DatePicker
                 label="Ngày bắt đầu"
-                value={newCampaignStartDate}
-                onChange={setNewCampaignStartDate}
+                value={formData.startDate}
+                onChange={(value) => updateFormData("startDate", value)}
                 placeholder="mm/dd/yyyy"
                 classNames={{
                   inputWrapper:
@@ -93,8 +83,8 @@ export default function CampaignModal({
               />
               <DatePicker
                 label="Ngày kết thúc"
-                value={newCampaignEndDate}
-                onChange={setNewCampaignEndDate}
+                value={formData.endDate}
+                onChange={(value) => updateFormData("endDate", value)}
                 placeholder="mm/dd/yyyy"
                 classNames={{
                   inputWrapper:
@@ -104,8 +94,8 @@ export default function CampaignModal({
               />
               <Input
                 label="Kênh phát hành"
-                value={newCampaignChannel}
-                onValueChange={setNewCampaignChannel}
+                value={formData.channel}
+                onValueChange={(value) => updateFormData("channel", value)}
                 placeholder="Zalo OA, Mini App, Website..."
                 classNames={{
                   inputWrapper:
@@ -116,9 +106,9 @@ export default function CampaignModal({
               <Input
                 label="Ngân sách (VNĐ)"
                 type="number"
-                value={newCampaignBudget.toString()}
+                value={formData.budget.toString()}
                 onValueChange={(value) =>
-                  setNewCampaignBudget(parseInt(value) || 0)
+                  updateFormData("budget", parseInt(value) || 0)
                 }
                 placeholder="10000000"
                 classNames={{
@@ -142,9 +132,33 @@ export default function CampaignModal({
                 startContent={
                   <Sparkles className="h-5 w-5 transition-transform group-hover:rotate-12" />
                 }
-                onClick={
-                  editingCampaign ? handleEditCampaign : handleCreateCampaign
-                }
+                onClick={() => {
+                  if (!formData.name.trim()) {
+                    warning("Vui lòng nhập tên chiến dịch!");
+                    return;
+                  }
+                  if (!formData.startDate || !formData.endDate) {
+                    warning("Vui lòng chọn ngày bắt đầu và kết thúc!");
+                    return;
+                  }
+
+                  const formatDate = (dateObj) => {
+                    if (!dateObj) return null;
+                    const year = dateObj.year;
+                    const month = String(dateObj.month).padStart(2, "0");
+                    const day = String(dateObj.day).padStart(2, "0");
+                    return `${year}-${month}-${day}`;
+                  };
+
+                  const payload = {
+                    ...formData,
+                    startDate: formatDate(formData.startDate),
+                    endDate: formatDate(formData.endDate),
+                    channel: [formData.channel],
+                  };
+
+                  onSubmit(payload, editingCampaign);
+                }}
               >
                 <span className="relative z-10">
                   {editingCampaign ? "Cập nhật chiến dịch" : "Tạo chiến dịch"}

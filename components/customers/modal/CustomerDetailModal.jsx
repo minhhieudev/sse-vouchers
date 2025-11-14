@@ -9,11 +9,13 @@ import {
 } from "@heroui/modal";
 import { Chip } from "@heroui/chip";
 import {
+  Building,
   Calendar,
   Crown,
   DollarSign,
   Edit,
   ExternalLink,
+  Heart,
   History,
   Mail,
   MessageSquare,
@@ -22,6 +24,7 @@ import {
   Scale,
   Ticket,
   TrendingUp,
+  X,
   Zap,
 } from "lucide-react";
 
@@ -51,9 +54,9 @@ const getTagIcon = (tag) => {
     case "new-trial":
       return <Zap className="h-3 w-3" />;
     case "loyal":
-      return <div className="h-3 w-3" />;
+      return <Heart className="h-3 w-3" />;
     case "enterprise":
-      return <div className="h-3 w-3" />;
+      return <Building className="h-3 w-3" />;
     default:
       return <div className="h-3 w-3" />;
   }
@@ -173,7 +176,7 @@ export default function CustomerDetailModal({
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg">
                         <TrendingUp className="h-5 w-5" />
                       </div>
-                      <h4 className="text-lg font-bold text-slate-900 bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                      <h4 className="text-lg font-bold text-slate-900 bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text ">
                         Thống kê sử dụng
                       </h4>
                     </div>
@@ -195,7 +198,7 @@ export default function CustomerDetailModal({
                     <div className="flex justify-between items-center p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50/50 border border-blue-100/50 hover:border-blue-200/80 hover:shadow-md transition-all duration-200">
                       <div className="flex items-center gap-3">
                         <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-sm">
-                          <div className="h-3 w-3" />
+                          <History className="h-3 w-3" />
                         </div>
                         <span className="text-sm font-medium text-slate-700">
                           Đã sử dụng
@@ -256,15 +259,14 @@ export default function CustomerDetailModal({
                         <Chip
                           size="lg"
                           variant="flat"
-                          className={`relative font-bold text-sm px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${getTagColor(tag)} border-2`}
+                          className={`relative font-semibold text-sm px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 ${getTagColor(tag)}`}
                           startContent={
-                            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/80 shadow-sm">
+                            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/80 shadow-sm mr-2">
                               {getTagIcon(tag)}
                             </div>
                           }
                         >
-                          {tagOptions.find((t) => t.id === tag)?.label ||
-                            tag}
+                          {tagOptions.find((t) => t.id === tag)?.label || tag}
                         </Chip>
                       </div>
                     ))}
@@ -344,8 +346,7 @@ export default function CustomerDetailModal({
                                   Lượt dùng
                                 </p>
                                 <p className="text-sm font-bold text-slate-900">
-                                  {voucher.remainingUses}/
-                                  {voucher.totalUses}
+                                  {voucher.remainingUses}/{voucher.totalUses}
                                 </p>
                               </div>
                             </div>
@@ -385,27 +386,25 @@ export default function CustomerDetailModal({
                                 </h6>
                               </div>
                               <div className="space-y-2">
-                                {voucher.usageHistory.map(
-                                  (usage, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200/50 hover:border-slate-300/80 hover:shadow-md transition-all duration-200"
-                                    >
-                                      <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-slate-500 to-slate-600 text-white shadow-sm text-xs font-bold">
-                                        {index + 1}
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="text-sm font-semibold text-slate-900">
-                                          {usage.date}
-                                        </p>
-                                        <p className="text-xs text-slate-600">
-                                          {usage.weightUsed}kg • Đơn{" "}
-                                          {usage.orderCode}
-                                        </p>
-                                      </div>
+                                {voucher.usageHistory.map((usage, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200/50 hover:border-slate-300/80 hover:shadow-md transition-all duration-200"
+                                  >
+                                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-slate-500 to-slate-600 text-white shadow-sm text-xs font-bold">
+                                      {index + 1}
                                     </div>
-                                  )
-                                )}
+                                    <div className="flex-1">
+                                      <p className="text-sm font-semibold text-slate-900">
+                                        {usage.date}
+                                      </p>
+                                      <p className="text-xs text-slate-600">
+                                        {usage.weightUsed}kg • Đơn{" "}
+                                        {usage.orderCode}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
@@ -444,6 +443,7 @@ export default function CustomerDetailModal({
           <Button
             variant="light"
             className="bg-gradient-to-r from-slate-50 to-slate-100 border-2 border-slate-200/60 hover:border-slate-300 hover:from-slate-100 hover:to-slate-200 transition-all duration-200 shadow-md shadow-slate-200/30"
+            startContent={<X className="h-4 w-4" />}
             onClick={() => setShowDetailModal(false)}
           >
             <span className="font-semibold text-slate-700">Đóng</span>
@@ -455,22 +455,20 @@ export default function CustomerDetailModal({
           >
             <span className="font-semibold">Xem trong CRM</span>
           </Button>
-          <div className="flex gap-2">
-            <Button
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/30 transition-all duration-200"
-              startContent={<MessageSquare className="h-4 w-4" />}
-              onClick={() => handleSendNotification("zalo")}
-            >
-              <span className="font-semibold">Gửi Zalo</span>
-            </Button>
-            <Button
-              className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-lg shadow-orange-500/30 transition-all duration-200"
-              startContent={<Mail className="h-4 w-4" />}
-              onClick={() => handleSendNotification("email")}
-            >
-              <span className="font-semibold">Gửi Email</span>
-            </Button>
-          </div>
+          <Button
+            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/30 transition-all duration-200"
+            startContent={<MessageSquare className="h-4 w-4" />}
+            onClick={() => handleSendNotification("zalo")}
+          >
+            <span className="font-semibold">Gửi Zalo</span>
+          </Button>
+          <Button
+            className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-lg shadow-orange-500/30 transition-all duration-200"
+            startContent={<Mail className="h-4 w-4" />}
+            onClick={() => handleSendNotification("email")}
+          >
+            <span className="font-semibold">Gửi Email</span>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

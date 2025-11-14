@@ -1,13 +1,16 @@
 import { Checkbox } from "@heroui/checkbox";
 import { Chip } from "@heroui/chip";
+import { Button } from "@heroui/button";
 import {
     Activity,
     BarChart3,
     CheckCircle,
     Clock,
+    Edit2,
     Hash,
     PlayCircle,
     Target,
+    Trash2,
     User,
     Zap,
 } from "lucide-react";
@@ -16,17 +19,8 @@ export default function CampaignCard({
   campaign,
   selectedKeys,
   setSelectedKeys,
-  setEditingCampaign,
-  setNewCampaignName,
-  setNewCampaignDescription,
-  setNewCampaignStartDate,
-  setNewCampaignEndDate,
-  setNewCampaignChannel,
-  setNewCampaignBudget,
-  setShowCreateModal,
-  campaigns,
-  setCampaigns,
-  success,
+  onEdit,
+  onDelete,
 }) {
   const getChannelStyle = (name) => {
     const n = (name || "").toString().toLowerCase();
@@ -169,6 +163,28 @@ export default function CampaignCard({
               <div className="text-slate-500">→ {campaign.endDate}</div>
             </div>
           </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <Button
+            isIconOnly
+            size="sm"
+            variant="flat"
+            className="bg-blue-100/60 hover:bg-blue-200 text-blue-600"
+            onClick={() => onEdit(campaign)}
+          >
+            <Edit2 className="h-4 w-4" />
+          </Button>
+          <Button
+            isIconOnly
+            size="sm"
+            variant="flat"
+            className="bg-rose-100/60 hover:bg-rose-200 text-rose-600"
+            onClick={() => onDelete(campaign)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
