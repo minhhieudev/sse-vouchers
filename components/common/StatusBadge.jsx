@@ -13,7 +13,7 @@ import {
 
 const STATUS_PRESETS = {
   active: {
-    label: "Đang hoạt động",
+    label: "Active",
     icon: CheckCircle2,
     chip:
       "bg-emerald-50 text-emerald-700 ring-emerald-200/70 shadow-emerald-100/80",
@@ -21,21 +21,21 @@ const STATUS_PRESETS = {
     iconColor: "text-emerald-600",
   },
   inactive: {
-    label: "Ngưng hoạt động",
+    label: "Inactive",
     icon: CircleSlash2,
     chip: "bg-slate-50 text-slate-600 ring-slate-200/70 shadow-slate-100/80",
     dot: "bg-slate-400",
     iconColor: "text-slate-500",
   },
   scheduled: {
-    label: "Chờ kích hoạt",
+    label: "Scheduled",
     icon: Clock3,
     chip: "bg-amber-50 text-amber-700 ring-amber-200/70 shadow-amber-100/80",
     dot: "bg-amber-400",
     iconColor: "text-amber-600",
   },
   used: {
-    label: "Đã sử dụng",
+    label: "Used",
     icon: ShieldCheck,
     chip:
       "bg-indigo-50 text-indigo-700 ring-indigo-200/70 shadow-indigo-100/80",
@@ -43,21 +43,21 @@ const STATUS_PRESETS = {
     iconColor: "text-indigo-600",
   },
   expired: {
-    label: "Hết hạn",
+    label: "Expired",
     icon: TriangleAlert,
     chip: "bg-rose-50 text-rose-700 ring-rose-200/70 shadow-rose-100/80",
     dot: "bg-rose-400",
     iconColor: "text-rose-600",
   },
   running: {
-    label: "Đang chạy",
+    label: "Running",
     icon: Activity,
     chip: "bg-sky-50 text-sky-700 ring-sky-200/70 shadow-sky-100/80",
     dot: "bg-sky-400",
     iconColor: "text-sky-600",
   },
   completed: {
-    label: "Hoàn tất",
+    label: "Completed",
     icon: Sparkles,
     chip:
       "bg-purple-50 text-purple-700 ring-purple-200/70 shadow-purple-100/80",
@@ -91,13 +91,6 @@ export function StatusBadge({
         className
       )}
     >
-      <span
-        className={clsx(
-          "inline-flex h-2.5 w-2.5 rounded-full",
-          config.dot
-        )}
-        aria-hidden
-      />
       <Icon
         className={clsx(
           "h-3.5 w-3.5",

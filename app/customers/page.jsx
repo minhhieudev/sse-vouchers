@@ -133,14 +133,6 @@ export default function CustomersPage() {
     setShowAddVoucherModal(true);
   };
 
-  const handleAddVoucherViaSelection = (customerId) => {
-    if (!customerId) return;
-    const target = customers.find((customer) => customer.id === customerId);
-    if (target) {
-      handleShowVoucherModal(target);
-    }
-  };
-
   const handleSaveNote = () => {
     // In a real app, this would update the customer data
     setSelectedCustomer((prev) => ({ ...prev, notes: editingNote }));
@@ -250,12 +242,11 @@ export default function CustomersPage() {
               statusFilter={statusFilter}
               setStatusFilter={setStatusFilter}
               tagFilter={tagFilter}
-              setTagFilter={setTagFilter}
-              selectedKeys={selectedKeys}
-              setShowDeleteModal={setShowDeleteModal}
-              onAddCustomer={() => setShowAddCustomerModal(true)}
-              onAddVoucher={handleAddVoucherViaSelection}
-            />
+            setTagFilter={setTagFilter}
+            selectedKeys={selectedKeys}
+            setShowDeleteModal={setShowDeleteModal}
+            onAddCustomer={() => setShowAddCustomerModal(true)}
+          />
 
             <CustomerTable
               paginatedCustomers={paginatedCustomers}

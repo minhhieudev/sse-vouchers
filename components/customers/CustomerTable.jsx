@@ -228,7 +228,7 @@ export default function CustomerTable({
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2 justify-center">
-                  <Tooltip content="C?p voucher">
+                  <Tooltip content="Cấp voucher">
                     <Button
                       size="sm"
                       variant="light"

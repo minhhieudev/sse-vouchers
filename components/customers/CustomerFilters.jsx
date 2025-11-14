@@ -9,7 +9,6 @@ import {
   Trash2,
   User,
   UserPlus,
-  TicketPlus,
 } from "lucide-react";
 
 const statusOptions = [
@@ -54,11 +53,9 @@ export default function CustomerFilters({
   selectedKeys,
   setShowDeleteModal,
   onAddCustomer,
-  onAddVoucher,
 }) {
   const showReset = statusFilter !== "all" || tagFilter !== "all" || query.trim();
-  const hasSingleSelection = selectedKeys?.size === 1;
-  const selectedCustomerId = hasSingleSelection ? Array.from(selectedKeys)[0] : null;
+  const selectedCount = selectedKeys?.size ?? 0;
 
   return (
     <div className="mb-6 flex flex-col gap-4">
@@ -80,25 +77,7 @@ export default function CustomerFilters({
           >
             Thêm khách hàng
           </Button>
-          <Button
-            className="w-full rounded-2xl border-2 border-purple-200/60 bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-900 shadow-lg shadow-purple-500/20 hover:border-purple-300 disabled:opacity-60 disabled:shadow-none sm:w-auto"
-            startContent={<TicketPlus className="h-4 w-4" />}
-            onClick={() => hasSingleSelection && onAddVoucher?.(selectedCustomerId)}
-            isDisabled={!hasSingleSelection}
-            title={
-              hasSingleSelection
-                ? "Cấp voucher cho khách đã chọn"
-                : "Chọn 1 khách trong bảng để cấp voucher"
-            }
-          >
-            Cấp voucher
-          </Button>
         </div>
-        <p className="w-full text-right text-xs text-slate-500 sm:w-auto">
-          {hasSingleSelection
-            ? `Đang chọn ${selectedCustomerId} để cấp voucher`
-            : "Chọn 1 khách trong bảng (checkbox) để kích hoạt nút cấp voucher"}
-        </p>
       </div>
 
       {/* Mobile layout */}

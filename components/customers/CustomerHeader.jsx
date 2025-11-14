@@ -5,7 +5,7 @@ export default function CustomerHeader({ customers }) {
     <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 p-1 shadow-2xl shadow-slate-200/60 ring-1 ring-slate-200/60 backdrop-blur-sm transition-all duration-500 hover:shadow-3xl hover:shadow-slate-300/70 hover:scale-[1.01]">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-indigo-500/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <div className="relative p-4">
+      <div className="relative px-4 py-2">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div className="flex items-center gap-6">
             <div className="relative">
