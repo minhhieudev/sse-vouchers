@@ -1,190 +1,169 @@
-import { Checkbox } from "@heroui/checkbox";
-import { Chip } from "@heroui/chip";
 import { Button } from "@heroui/button";
+import { Chip } from "@heroui/chip";
 import {
-    Activity,
-    BarChart3,
-    CheckCircle,
-    Clock,
-    Edit2,
-    Hash,
-    PlayCircle,
-    Target,
-    Trash2,
-    User,
-    Zap,
+  Activity,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Edit2,
+  Eye,
+  PlayCircle,
+  Target,
+  Trash2
 } from "lucide-react";
 
 export default function CampaignCard({
   campaign,
-  selectedKeys,
-  setSelectedKeys,
   onEdit,
   onDelete,
+  onViewDetail,
+  onSelect,
+  isSelected,
 }) {
-  const getChannelStyle = (name) => {
-    const n = (name || "").toString().toLowerCase();
-    if (n.includes("zalo"))
-      return "bg-blue-100/70 text-blue-700 border border-blue-200/50";
-    if (n.includes("crm"))
-      return "bg-amber-100/70 text-amber-700 border border-amber-200/50";
-    if (n.includes("mini"))
-      return "bg-emerald-100/70 text-emerald-700 border border-emerald-200/50";
-    if (n.includes("web") || n.includes("site"))
-      return "bg-indigo-100/70 text-indigo-700 border border-indigo-200/50";
-    return "bg-slate-100/70 text-slate-700 border border-slate-200/50";
+  const statusColors = {
+    active: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    inactive: "bg-amber-100 text-amber-700 border-amber-200",
+    expired: "bg-slate-100 text-slate-700 border-slate-200",
+    draft: "bg-blue-100 text-blue-700 border-blue-200",
   };
 
-  const statusColors = {
-    running: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    scheduled: "border-amber-200 bg-amber-50 text-amber-700",
-    completed: "border-slate-200 bg-slate-50 text-slate-700",
+  const statusLabels = {
+    active: "Đang hoạt động",
+    inactive: "Tạm dừng",
+    expired: "Đã hết hạn",
+    draft: "Bản nháp",
+  };
+
+  const StatusIcon =
+    {
+      active: PlayCircle,
+      inactive: Clock,
+      expired: CheckCircle,
+      draft: Clock,
+    }[campaign.status] || Clock;
+
+  const statusIconColors = {
+    active: "text-emerald-600",
+    inactive: "text-amber-600",
+    expired: "text-slate-600",
+    draft: "text-blue-600",
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-slate-50/50 border border-slate-200/50 shadow-lg shadow-slate-200/25 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-300/40 hover:scale-[1.02]">
-      <div className="p-6 space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md">
-                <Hash className="h-4 w-4" />
-              </div>
-              <p className="font-bold text-slate-900 text-lg">
+    <div
+      className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 cursor-pointer ${
+        isSelected
+          ? "border-blue-500 bg-blue-50/20 shadow-md"
+          : "border-slate-200 bg-white shadow-sm hover:shadow-md"
+      }`}
+      onClick={onSelect}
+    >
+      <div className="p-3 sm:p-4 flex flex-col gap-3">
+        {/* Header: Name, Status */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate leading-tight">
                 {campaign.name}
-              </p>
+              </h3>
             </div>
-            <p className="text-sm font-medium text-slate-700">
-              {campaign.description}
+            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+              {campaign.description || "Không có mô tả"}
             </p>
-            <div className="flex items-center gap-2">
-              <User className="h-3 w-3 text-slate-400" />
-              <span className="text-xs font-medium text-slate-600">
-                {campaign.owner}
+          </div>
+
+          <Chip
+            size="sm"
+            variant="flat"
+            className={`border ${statusColors[campaign.status] || statusColors.draft} font-semibold h-6 text-xs shrink-0`}
+            startContent={
+              <StatusIcon
+                size={12}
+                className={statusIconColors[campaign.status] || "text-blue-600"}
+              />
+            }
+          >
+            {statusLabels[campaign.status]}
+          </Chip>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-blue-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-blue-200 flex flex-col items-center justify-center text-center">
+            <div className="flex items-center gap-1 text-blue-600 mb-1">
+              <Target size={12} />
+              <span className="text-xs font-medium">Tổng voucher</span>
+            </div>
+            <span className="text-sm sm:text-base font-bold text-slate-900">
+              {campaign.total_voucher?.toLocaleString("vi-VN") || 0}
+            </span>
+          </div>
+
+          <div className="bg-emerald-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-emerald-200 flex flex-col items-center justify-center text-center">
+            <div className="flex items-center gap-1 text-emerald-600 mb-1">
+              <Activity size={12} />
+              <span className="text-xs font-medium">Mệnh giá</span>
+            </div>
+            <span className="text-sm sm:text-base font-bold text-emerald-600">
+              {campaign.voucher_value?.toLocaleString("vi-VN") || 0} đ
+            </span>
+          </div>
+        </div>
+
+        {/* Footer: Date & Actions */}
+        <div className="flex flex-col gap-2 pt-2 sm:pt-3 border-t border-slate-100">
+          <div className="flex flex-col gap-1 text-xs">
+            <div className="flex items-center gap-1.5 font-medium text-slate-600 bg-green-50 px-2 py-1 rounded-lg">
+              <Calendar size={12} className="text-green-600" />
+              <span className="font-semibold">
+                Bắt đầu:{" "}
+                {new Date(campaign.start_date).toLocaleDateString("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                })}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 font-medium text-slate-600 bg-red-50 px-2 py-1 rounded-lg">
+              <Calendar size={12} className="text-red-600" />
+              <span className="font-semibold">
+                Kết thúc:{" "}
+                {new Date(campaign.end_date).toLocaleDateString("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                })}
               </span>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <Checkbox
-              isSelected={selectedKeys.has(campaign.id)}
-              onValueChange={(isSelected) => {
-                const newSelectedKeys = new Set(selectedKeys);
-                if (isSelected) {
-                  newSelectedKeys.add(campaign.id);
-                } else {
-                  newSelectedKeys.delete(campaign.id);
-                }
-                setSelectedKeys(newSelectedKeys);
-              }}
+
+          <div className="flex items-center gap-1 justify-end">
+            <Button
+              isIconOnly
               size="sm"
-            />
-            <div className="flex items-center gap-2">
-              {campaign.status === "running" && (
-                <PlayCircle className="h-4 w-4 text-emerald-600" />
-              )}
-              {campaign.status === "scheduled" && (
-                <Clock className="h-4 w-4 text-amber-600" />
-              )}
-              {campaign.status === "completed" && (
-                <CheckCircle className="h-4 w-4 text-slate-600" />
-              )}
-              <Chip
-                size="sm"
-                variant="flat"
-                className={`${statusColors[campaign.status] || statusColors.completed} font-bold`}
-              >
-                {campaign.status === "running"
-                  ? "Đang chạy"
-                  : campaign.status === "scheduled"
-                    ? "Sắp chạy"
-                    : "Đã kết thúc"}
-              </Chip>
-            </div>
+              variant="flat"
+              className="bg-blue-100 text-blue-600 hover:bg-blue-200"
+              onClick={onViewDetail}
+            >
+              <Eye size={16} />
+            </Button>
+            <Button
+              isIconOnly
+              size="sm"
+              variant="flat"
+              className="bg-indigo-100 text-indigo-600 hover:bg-indigo-200"
+              onClick={() => onEdit(campaign)}
+            >
+              <Edit2 size={16} />
+            </Button>
+            <Button
+              isIconOnly
+              size="sm"
+              variant="flat"
+              className="bg-rose-100 text-rose-600 hover:bg-rose-200"
+              onClick={() => onDelete(campaign)}
+            >
+              <Trash2 size={16} />
+            </Button>
           </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-3 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/50">
-            <div className="flex items-center justify-center mb-1">
-              <Target className="h-4 w-4 text-blue-600" />
-            </div>
-            <p className="text-xs font-medium text-slate-600">Đã phát</p>
-            <p className="text-lg font-bold text-slate-900">
-              {campaign.issued.toLocaleString("vi-VN")}
-            </p>
-          </div>
-          <div className="text-center p-3 rounded-lg bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200/50">
-            <div className="flex items-center justify-center mb-1">
-              <Activity className="h-4 w-4 text-emerald-600" />
-            </div>
-            <p className="text-xs font-medium text-slate-600">Đã dùng</p>
-            <p className="text-lg font-bold text-slate-900">
-              {campaign.used.toLocaleString("vi-VN")}
-            </p>
-          </div>
-          <div className="text-center p-3 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/50">
-            <div className="flex items-center justify-center mb-1">
-              <Zap className="h-4 w-4 text-purple-600" />
-            </div>
-            <p className="text-xs font-medium text-slate-600">Còn lại</p>
-            <p className="text-lg font-bold text-slate-900">
-              {campaign.active.toLocaleString("vi-VN")}
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center py-2 border-b border-slate-100">
-            <span className="text-sm font-medium text-slate-600">
-              Kênh phát hành:
-            </span>
-            <div className="flex flex-wrap gap-1 justify-end">
-              {campaign.channel.map((channel, index) => (
-                <Chip
-                  key={`${campaign.id}-${channel}`}
-                  size="sm"
-                  variant="flat"
-                  className={`${getChannelStyle(channel)} font-medium text-xs shadow-sm`}
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {index === 0 && <BarChart3 className="h-2.5 w-2.5" />}
-                    {channel}
-                  </span>
-                </Chip>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-slate-600">
-              Thời gian:
-            </span>
-            <div className="text-xs font-semibold text-slate-700 text-right">
-              <div>{campaign.startDate}</div>
-              <div className="text-slate-500">→ {campaign.endDate}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-          <Button
-            isIconOnly
-            size="sm"
-            variant="flat"
-            className="bg-blue-100/60 hover:bg-blue-200 text-blue-600"
-            onClick={() => onEdit(campaign)}
-          >
-            <Edit2 className="h-4 w-4" />
-          </Button>
-          <Button
-            isIconOnly
-            size="sm"
-            variant="flat"
-            className="bg-rose-100/60 hover:bg-rose-200 text-rose-600"
-            onClick={() => onDelete(campaign)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       </div>
     </div>

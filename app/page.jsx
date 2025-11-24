@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, forwardRef } from "react";
+import { useState, useMemo } from "react";
 import {
   Ticket,
   CircleCheck,
@@ -43,11 +43,10 @@ const CustomMonthPicker = ({ selectedDate, onDateChange }) => {
     setIsOpen(false);
   };
 
-  const TriggerButton = forwardRef((props, ref) => (
+  const TriggerButton = ({ ...props }) => (
     <Button
       {...props}
       id="month-picker"
-      ref={ref}
       variant="ghost"
       className="justify-start text-left font-normal bg-transparent hover:bg-transparent border-none focus:outline-none !p-0"
     >
@@ -59,8 +58,7 @@ const CustomMonthPicker = ({ selectedDate, onDateChange }) => {
         })}
       </span>
     </Button>
-  ));
-  TriggerButton.displayName = "TriggerButton";
+  );
 
   return (
     <Popover isOpen={isOpen} onOpenChange={setIsOpen}>
@@ -92,7 +90,7 @@ const CustomMonthPicker = ({ selectedDate, onDateChange }) => {
                 key={month}
                 variant={
                   selectedDate.getFullYear() === viewYear &&
-                  selectedDate.getMonth() === index
+                    selectedDate.getMonth() === index
                     ? "solid"
                     : "ghost"
                 }
@@ -237,59 +235,59 @@ export default function VoucherDashboardPage() {
         </section>
         {/* --- Section 5: Conversion & Channel Performance --- */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg flex flex-col justify-center items-center text-center">
-                <h3 className="text-xl font-bold text-slate-900 mb-4">Tỷ lệ sử dụng</h3>
-                <div className="relative w-32 h-32">
-                    <svg className="w-full h-full" viewBox="0 0 36 36">
-                        <path
-                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                            fill="none"
-                            stroke="#e2e8f0"
-                            strokeWidth="3"
-                        />
-                        <path
-                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                            fill="none"
-                            stroke="#4f46e5"
-                            strokeWidth="3"
-                            strokeDasharray={`${usageRate.toFixed(0)}, 100`}
-                        />
-                    </svg>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                        <span className="text-3xl font-bold text-indigo-600">{usageRate.toFixed(1)}%</span>
-                    </div>
-                </div>
-                <p className="mt-4 text-slate-600">
-                    {totalVouchersUsed} trên {totalVouchersIssued} voucher đã được sử dụng.
-                </p>
+          <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg flex flex-col justify-center items-center text-center">
+            <h3 className="text-xl font-bold text-slate-900 mb-4">Tỷ lệ sử dụng</h3>
+            <div className="relative w-32 h-32">
+              <svg className="w-full h-full" viewBox="0 0 36 36">
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#e2e8f0"
+                  strokeWidth="3"
+                />
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#4f46e5"
+                  strokeWidth="3"
+                  strokeDasharray={`${usageRate.toFixed(0)}, 100`}
+                />
+              </svg>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <span className="text-3xl font-bold text-indigo-600">{usageRate.toFixed(1)}%</span>
+              </div>
             </div>
+            <p className="mt-4 text-slate-600">
+              {totalVouchersUsed} trên {totalVouchersIssued} voucher đã được sử dụng.
+            </p>
+          </div>
 
-            <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-                 <h3 className="text-xl font-bold text-slate-900 mb-4">Hiệu suất kênh Zalo</h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
-                        <div className="p-3 bg-blue-100 rounded-full">
-                            <QrCode className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-slate-600">Lượt quét QR qua Zalo</p>
-                            <p className="text-2xl font-bold text-slate-900">{usageOverview.qrScans} Lượt</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg">
-                        <div className="p-3 bg-green-100 rounded-full">
-                            <Activity className="w-6 h-6 text-green-600" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-slate-600">Tỷ lệ chuyển đổi Zalo</p>
-                            <p className="text-2xl font-bold text-slate-900">76%</p>
-                        </div>
-                    </div>
-                 </div>
-                 <p className="text-xs text-slate-500 mt-4">
-                    * Dữ liệu mô phỏng cho mục đích hiển thị. Bao gồm Zalo OA và Mini App.
-                 </p>
+          <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
+            <h3 className="text-xl font-bold text-slate-900 mb-4">Hiệu suất kênh Zalo</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <QrCode className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Lượt quét QR qua Zalo</p>
+                  <p className="text-2xl font-bold text-slate-900">{usageOverview.qrScans} Lượt</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg">
+                <div className="p-3 bg-green-100 rounded-full">
+                  <Activity className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Tỷ lệ chuyển đổi Zalo</p>
+                  <p className="text-2xl font-bold text-slate-900">76%</p>
+                </div>
+              </div>
             </div>
+            <p className="text-xs text-slate-500 mt-4">
+              * Dữ liệu mô phỏng cho mục đích hiển thị. Bao gồm Zalo OA và Mini App.
+            </p>
+          </div>
         </section>
       </main>
     </div>

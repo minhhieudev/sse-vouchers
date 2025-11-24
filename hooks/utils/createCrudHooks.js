@@ -2,8 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useToast } from "@/hooks/ui";
-
 /* -------------------------------------------------------------------------- */
 /* 🔑 QUERY KEY FACTORY                                                       */
 /* -------------------------------------------------------------------------- */
@@ -49,8 +47,8 @@ export const createResourceKeys = (resource) => ({
  κό @param {Function} config.create       - API tạo mới
  * @param {Function} config.update       - API cập nhật
  * @param {Function} config.deleteItem   - API xóa
- * @param {Function} config.fetchStats   - API thống kê (nếu có)^{\n   * @param {Object}   config.options      - Tuỳ chọn mặc định (cache, staleTime,...)
- * @param {boolean}  config.enableToast - Bật/tắt toast tự động (mặc định: true)
+ * @param {Function} config.fetchStats   - API thống kê (nếu có)
+ * @param {Object}   config.options      - Tuỳ chọn mặc định (cache, staleTime,...)
  *
  * @returns {Object} Tập hợp CRUD hooks (chỉ tạo những cái có hàm tương ứng)
  */
@@ -63,7 +61,6 @@ export const createCrudHooks = ({
   deleteItem,
   fetchStats,
   options = {},
-  enableToast = true, // Enable automatic toast notifications
 }) => {
   const keys = createResourceKeys(resource);
 
@@ -126,37 +123,24 @@ export const createCrudHooks = ({
   if (createFn) {
     hooks.useCreate = (mutationOptions = {}) => {
       const queryClient = useQueryClient();
-      const { successAction, errorAction } = useToast();
 
       return useMutation({
         mutationFn: createFn,
-        onSuccess: (data, variables, context) => {
+        onSuccess: (response, variables, context) => {
           // 🔁 Sau khi tạo thành công → refetch lại danh sách + stats
           queryClient.invalidateQueries({ queryKey: keys.lists() });
           if (fetchStats)
             queryClient.invalidateQueries({ queryKey: keys.stats() });
 
-          // Show toast notification if enabled
-          // toastMessage: string = custom message (bỏ qua BE và config)
-          if (enableToast) {
-            successAction("create", resource, data, {
-              useConfigMessage: mutationOptions.toastMessage,
-            });
-          }
-
           // Call user's onSuccess if provided
-          mutationOptions.onSuccess?.(data, variables, context);
+          // response = { status, message, data, ... }
+          // Component handle toast notification here
+          mutationOptions.onSuccess?.(response, variables, context);
         },
         onError: (error, variables, context) => {
-          // Show toast notification if enabled
-          // toastErrorMessage: string = custom message (bỏ qua BE và config)
-          if (enableToast) {
-            errorAction("create", resource, error, {
-              useConfigMessage: mutationOptions.toastErrorMessage,
-            });
-          }
-
           // Call user's onError if provided
+          // error.response.data = { status, message, detail, ... }
+          // Component handle toast notification here
           mutationOptions.onError?.(error, variables, context);
         },
         ...mutationOptions,
@@ -170,7 +154,6 @@ export const createCrudHooks = ({
   if (updateFn) {
     hooks.useUpdate = (mutationOptions = {}) => {
       const queryClient = useQueryClient();
-      const { successAction, errorAction } = useToast();
 
       return useMutation({
         mutationFn: updateFn,
@@ -193,29 +176,23 @@ export const createCrudHooks = ({
           if (ctx?.previousItem)
             queryClient.setQueryData(keys.detail(ctx.id), ctx.previousItem);
 
-          // Show toast notification if enabled
-          if (enableToast) {
-            errorAction("update", resource, err, {
-              useConfigMessage: mutationOptions.toastErrorMessage,
-            });
-          }
+          // Call user's onError if provided
+          // err.response.data = { status, message, detail, ... }
+          // Component handle toast notification here
+          mutationOptions.onError?.(err, vars, ctx);
         },
         // ✅ Cập nhật cache và invalidate sau khi API thành công
-        onSuccess: (data, vars, context) => {
-          queryClient.setQueryData(keys.detail(vars.id), data);
+        onSuccess: (response, vars, context) => {
+          // response.data contains the updated item
+          queryClient.setQueryData(keys.detail(vars.id), response.data || response);
           queryClient.invalidateQueries({ queryKey: keys.lists() });
           if (fetchStats)
             queryClient.invalidateQueries({ queryKey: keys.stats() });
 
-          // Show toast notification if enabled
-          if (enableToast) {
-            successAction("update", resource, data, {
-              useConfigMessage: mutationOptions.toastMessage,
-            });
-          }
-
           // Call user's onSuccess if provided
-          mutationOptions.onSuccess?.(data, vars, context);
+          // response = { status, message, data, ... }
+          // Component handle toast notification here
+          mutationOptions.onSuccess?.(response, vars, context);
         },
         ...mutationOptions,
       });
@@ -228,7 +205,6 @@ export const createCrudHooks = ({
   if (deleteItem) {
     hooks.useDelete = (mutationOptions = {}) => {
       const queryClient = useQueryClient();
-      const { successAction, errorAction } = useToast();
 
       return useMutation({
         mutationFn: deleteItem,
@@ -246,31 +222,21 @@ export const createCrudHooks = ({
           if (ctx?.prevItem)
             queryClient.setQueryData(keys.detail(ctx.id), ctx.prevItem);
 
-          // Show toast notification if enabled
-          if (enableToast) {
-            errorAction("delete", resource, err, {
-              useConfigMessage: mutationOptions.toastErrorMessage,
-            });
-          }
-
           // Call user's onError if provided
+          // err.response.data = { status, message, detail, ... }
+          // Component handle toast notification here
           mutationOptions.onError?.(err, id, ctx);
         },
         // ✅ Sau khi xóa → invalidate list + stats
-        onSuccess: (data, variables, context) => {
+        onSuccess: (response, variables, context) => {
           queryClient.invalidateQueries({ queryKey: keys.lists() });
           if (fetchStats)
             queryClient.invalidateQueries({ queryKey: keys.stats() });
 
-          // Show toast notification if enabled
-          if (enableToast) {
-            successAction("delete", resource, data, {
-              useConfigMessage: mutationOptions.toastMessage,
-            });
-          }
-
           // Call user's onSuccess if provided
-          mutationOptions.onSuccess?.(data, variables, context);
+          // response = { status, message, data, ... }
+          // Component handle toast notification here
+          mutationOptions.onSuccess?.(response, variables, context);
         },
         ...mutationOptions,
       });

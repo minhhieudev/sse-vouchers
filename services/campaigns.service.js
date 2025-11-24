@@ -1,25 +1,47 @@
-import { vouchersDB, mockCampaigns } from "./vouchers.service";
+import apiClient from "@/lib/apiClient";
 
-const delay = (ms = 250) => new Promise((res) => setTimeout(res, ms));
-
-export async function listCampaigns() {
-  await delay();
-  // derive stats from vouchersDB
-  const byCampaign = mockCampaigns.map((c) => {
-    const items = vouchersDB.filter((v) => v.campaignId === c.id);
-    const issued = items.length;
-    const used = items.filter((v) => v.status === "used").length;
-    const active = items.filter((v) => v.status === "active").length;
-    return { id: c.id, name: c.name, issued, used, active };
-  });
-  return byCampaign;
+// Get list of campaigns with filters and pagination
+export async function getCampaigns(params = {}) {
+  const { data } = await apiClient.get("/voucher/campaigns", { params });
+  return data;
 }
 
-export async function createCampaign({ id, name }) {
-  await delay(300);
-  const exists = mockCampaigns.find((c) => c.id === id);
-  if (exists) throw new Error("Campaign ID already exists");
-  mockCampaigns.push({ id, name });
-  return { id, name };
+// Get campaign details by ID
+export async function getCampaignById(campaignId) {
+  const { data } = await apiClient.get(`/voucher/campaigns/${campaignId}`);
+  return data;
 }
 
+// Create new campaign
+export async function createCampaign(campaignData) {
+  const { data } = await apiClient.post("/voucher/campaigns", campaignData);
+  return data;
+}
+
+// Update existing campaign
+export async function updateCampaign({ id, data: campaignData }) {
+  const { data } = await apiClient.put(
+    `/voucher/campaigns/${id}`,
+    campaignData
+  );
+  return data;
+}
+
+// Delete campaign
+export async function deleteCampaign(campaignId) {
+  await apiClient.delete(`/voucher/campaigns/${campaignId}`);
+}
+
+// Get campaign statistics
+export async function getCampaignStats(campaignId) {
+  const { data } = await apiClient.get(
+    `/voucher/campaigns/${campaignId}/stats`
+  );
+  return data;
+}
+
+// Get dashboard statistics
+export async function getDashboardStats(params = {}) {
+  const { data } = await apiClient.get("/voucher/dashboard/stats", { params });
+  return data;
+}

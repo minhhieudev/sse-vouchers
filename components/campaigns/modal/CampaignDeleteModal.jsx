@@ -1,20 +1,28 @@
 import { Button } from "@heroui/button";
-import {
-  X
-} from "lucide-react";
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function CampaignDeleteModal({
   showDeleteModal,
   setShowDeleteModal,
   selectedKeys,
-  campaigns,
-  setCampaigns,
-  success
+  onDelete,
+  setSelectedKeys,
 }) {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between">
               <div>
@@ -49,26 +57,16 @@ export default function CampaignDeleteModal({
               </p>
             </div>
             <div className="mt-6 flex justify-end gap-2">
-              <Button
-                variant="light"
-                onClick={() => setShowDeleteModal(false)}
-              >
+              <Button variant="light" onClick={() => setShowDeleteModal(false)}>
                 Hủy bỏ
               </Button>
               <Button
                 className="rounded-2xl bg-gradient-to-r from-rose-500 to-red-600 text-white"
                 onClick={() => {
                   const selectedIds = Array.from(selectedKeys);
-                  setCampaigns(
-                    campaigns.filter(
-                      (campaign) => !selectedIds.includes(campaign.id)
-                    )
-                  );
-                  setSelectedKeys(new Set([]));
+                  selectedIds.forEach((id) => onDelete(id));
+                  if (setSelectedKeys) setSelectedKeys(new Set([]));
                   setShowDeleteModal(false);
-                  success(
-                    `Đã xóa ${selectedIds.length} chiến dịch thành công!`
-                  );
                 }}
               >
                 Xóa chiến dịch
@@ -77,6 +75,7 @@ export default function CampaignDeleteModal({
           </div>
         </div>
       )}
-    </>
+    </>,
+    document.body
   );
 }

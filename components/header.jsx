@@ -1,24 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Avatar } from "@heroui/avatar";
 import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/dropdown";
+import {
   Bell,
   BookOpen,
   LayoutGrid,
+  LogOut,
   Menu,
   QrCode,
   Search,
+  Settings,
   Sparkles,
+  User,
   X,
 } from "lucide-react";
 import clsx from "clsx";
 
 import { siteConfig } from "@/config/site";
 import { useLayoutStore } from "@/store/useLayoutStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const routeTitles = {
   "/": "Trung tâm voucher",
@@ -29,10 +39,20 @@ const routeTitles = {
 };
 
 export const Header = () => {
+  const router = useRouter();
   const pathname = usePathname();
   const { user } = siteConfig;
   const { toggleMobileSidebar } = useLayoutStore();
+  const logout = useAuthStore((state) => state.logout);
+  const authUser = useAuthStore((state) => state.user);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/auth");
+  };
+
+  const displayUser = authUser || user;
 
   const getPageIcon = (path) => {
     switch (path) {
@@ -174,26 +194,53 @@ export const Header = () => {
               </span>
             </Button>
 
-            {/* User Profile */}
-            <div className="group relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-slate-200/60 bg-white/80 shadow-md shadow-slate-200/25 transition-all duration-300 hover:border-indigo-300/80 hover:bg-indigo-50/80 hover:shadow-lg hover:shadow-indigo-200/40 lg:h-11 lg:w-auto lg:rounded-xl lg:px-2 lg:py-1">
-              <div className="flex items-center gap-1 lg:gap-2">
-                <div className="relative">
-                  <Avatar
-                    className="h-6 w-6 rounded-full border-2 border-white shadow-sm transition-transform duration-300 group-hover:scale-110 lg:h-7 lg:w-7"
-                    name={user.name}
-                    text={user.avatarInitials}
-                  />
-                  <div className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-white bg-gradient-to-br from-emerald-400 to-green-500 shadow-sm lg:h-2.5 lg:w-2.5" />
+            {/* User Profile Dropdown */}
+            <Dropdown placement="bottom-end">
+              <DropdownTrigger>
+                <div className="group relative flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200/60 bg-white/80 shadow-md shadow-slate-200/25 transition-all duration-300 hover:border-indigo-300/80 hover:bg-indigo-50/80 hover:shadow-lg hover:shadow-indigo-200/40 lg:h-11 lg:w-auto lg:rounded-xl lg:px-2 lg:py-1">
+                  <div className="flex items-center gap-1 lg:gap-2">
+                    <div className="relative">
+                      <Avatar
+                        className="h-6 w-6 rounded-full border-2 border-white shadow-sm transition-transform duration-300 group-hover:scale-110 lg:h-7 lg:w-7"
+                        name={displayUser.name}
+                        text={displayUser.avatarInitials}
+                      />
+                      <div className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-white bg-gradient-to-br from-emerald-400 to-green-500 shadow-sm lg:h-2.5 lg:w-2.5" />
+                    </div>
+                    <div className="hidden lg:block">
+                      <p className="text-xs font-bold text-slate-900">{displayUser.name}</p>
+                      <p className="text-xs font-medium text-slate-500">{displayUser.role}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="hidden lg:block">
-                  <p className="text-xs font-bold text-slate-900">{user.name}</p>
-                  <p className="text-xs font-medium text-slate-500">{user.role}</p>
-                </div>
-              </div>
-            </div>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="User menu actions">
+                <DropdownItem
+                  key="profile"
+                  startContent={<User className="h-4 w-4" />}
+                >
+                  Hồ sơ cá nhân
+                </DropdownItem>
+                <DropdownItem
+                  key="settings"
+                  startContent={<Settings className="h-4 w-4" />}
+                >
+                  Cài đặt
+                </DropdownItem>
+                <DropdownItem
+                  key="logout"
+                  color="danger"
+                  startContent={<LogOut className="h-4 w-4" />}
+                  onClick={handleLogout}
+                >
+                  Đăng xuất
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
           </div>
         </div>
       </div>
     </header>
   );
 };
+
