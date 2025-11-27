@@ -1,4 +1,5 @@
 "use client";
+
 import { Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -10,24 +11,43 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
-export function VoucherStatusChart({ data }) {
-  const statusCounts = data.reduce((acc, voucher) => {
-    const status = voucher.status || 'unknown';
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {});
+export function VoucherStatusChart({ summary, data = [] }) {
+  const statusLabelMap = {
+    active: "Đang hoạt động",
+    used: "Đã dùng",
+    expired: "Hết hạn",
+    inactive: "Vô hiệu hóa",
+    unknown: "Khác",
+  };
 
+  const getLabel = (status) =>
+    statusLabelMap[status] || status.toUpperCase();
+
+  const statusCounts = summary
+    ? {
+        active: summary.active_voucher ?? 0,
+        used: summary.used_voucher ?? 0,
+        expired: summary.expired_voucher ?? 0,
+        inactive: summary.inactive_voucher ?? 0,
+      }
+    : data.reduce((acc, voucher) => {
+        const status = voucher.status || "unknown";
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {});
+
+  const labels = Object.keys(statusCounts);
   const chartData = {
-    labels: Object.keys(statusCounts).map(s => s.charAt(0).toUpperCase() + s.slice(1)), // Capitalize status
+    labels: labels.map((label) => getLabel(label)),
     datasets: [
       {
         label: "Số lượng voucher",
-        data: Object.values(statusCounts),
+        data: labels.map((label) => statusCounts[label]),
         backgroundColor: [
-          "rgba(59, 130, 246, 0.8)", // active (blue)
-          "rgba(16, 185, 129, 0.8)", // used (green)
-          "rgba(245, 158, 11, 0.8)", // expired (amber)
-          "rgba(107, 114, 128, 0.8)", // scheduled (gray)
+          "rgba(59, 130, 246, 0.8)", // active
+          "rgba(16, 185, 129, 0.8)", // used
+          "rgba(245, 158, 11, 0.8)", // expired
+          "rgba(107, 114, 128, 0.8)", // inactive/others
         ],
         borderColor: [
           "rgba(59, 130, 246, 1)",
@@ -49,7 +69,7 @@ export function VoucherStatusChart({ data }) {
       },
       title: {
         display: true,
-        text: "Phân bổ trạng thái Voucher",
+        text: "Phân bổ trạng thái voucher",
         font: {
           size: 18,
         },

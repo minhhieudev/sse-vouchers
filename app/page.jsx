@@ -6,6 +6,7 @@ import {
   Ban,
   Banknote,
   Calendar as CalendarIcon,
+  ChevronRight,
   CircleCheck,
   Loader2,
   QrCode,
@@ -13,12 +14,15 @@ import {
   Ticket,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@heroui/popover";
 import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
 
 import SSEStatBox from "@/components/dashboard/SSEStatBox";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
+import { RevenueDetailChart } from "@/components/dashboard/RevenueDetailChart";
 import { VoucherStatusChart } from "@/components/dashboard/VoucherStatusChart";
 import { TopCustomersTable } from "@/components/dashboard/TopCustomersTable";
 import { TopCustomersChart } from "@/components/dashboard/TopCustomersChart";
@@ -138,24 +142,65 @@ const CustomMonthPicker = ({ selectedDate, onDateChange }) => {
 
 export default function VoucherDashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [periodType, setPeriodType] = useState("monthly"); // daily, weekly, monthly
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+  const [useCustomRange, setUseCustomRange] = useState(false);
   const { error: showError } = useToast();
 
-  const startOfMonth = useMemo(
-    () => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
-    [selectedDate],
-  );
-  const endOfMonth = useMemo(
-    () => new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0),
-    [selectedDate],
-  );
+  const formatDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
+  // Calculate date range for display purposes
+  const { displayStartDate, displayEndDate } = useMemo(() => {
+    if (useCustomRange && customStartDate && customEndDate) {
+      return {
+        displayStartDate: customStartDate,
+        displayEndDate: customEndDate,
+      };
+    }
+
+    const end = new Date();
+    let start = new Date();
+
+    switch (periodType) {
+      case "daily":
+        // Last 7 days
+        start = new Date(end);
+        start.setDate(end.getDate() - 6);
+        break;
+      case "weekly":
+        // Last 12 weeks (3 months)
+        start = new Date(end);
+        start.setDate(end.getDate() - 83); // ~12 weeks
+        break;
+      case "monthly":
+        // Last 12 months (1 year)
+        start = new Date(end);
+        start.setFullYear(start.getFullYear() - 1);
+        break;
+      default:
+        start = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    }
+
+    return {
+      displayStartDate: formatDateString(start),
+      displayEndDate: formatDateString(end),
+    };
+  }, [periodType, selectedDate, useCustomRange, customStartDate, customEndDate]);
+
+  // Build API params - period always has value, dates can be null
   const revenueParams = useMemo(
     () => ({
-      period: "monthly",
-      start_date: startOfMonth.toISOString(),
-      end_date: endOfMonth.toISOString(),
+      period: periodType,
+      start_date: customStartDate ? customStartDate : null,
+      end_date: customEndDate ? customEndDate : null,
     }),
-    [startOfMonth, endOfMonth],
+    [periodType, customStartDate, customEndDate],
   );
 
   const topCustomerParams = useMemo(() => ({ limit: 10 }), []);
@@ -244,235 +289,416 @@ export default function VoucherDashboardPage() {
   const periodLabel = formatPeriod(revenueData.period || revenueParams.period);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 text-slate-800">
+      <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-slate-900 mb-1">
+            Bảng Điều Khiển Tổng Hợp
+          </h1>
+          <p className="text-slate-600">
+            Theo dõi toàn bộ hoạt động voucher và doanh thu kinh doanh
+          </p>
+        </div>
+
+        {/* Filter Section - Always Visible */}
+        <div className="mb-10 bg-white rounded-xl shadow-md border border-slate-200/50 p-6">
+          <div className="space-y-4">
+            {/* Period Type Selection */}
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">
-                Báo cáo voucher
-              </h1>
-              <p className="mt-2 text-lg text-slate-600">
-                Bảng điều khiển tổng hợp từ API /voucher/reports/*
-              </p>
-              <p className="text-sm text-slate-500">
-                Kỳ: {periodLabel} | {formatDate(revenueData.start_date)} -{" "}
-                {formatDate(revenueData.end_date)}
-              </p>
+              <label className="text-sm font-semibold text-slate-900 mb-3 block">
+                Loại Báo Cáo
+              </label>
+              <div className="flex items-center gap-3 flex-wrap">
+                {["daily", "weekly", "monthly"].map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => {
+                      setPeriodType(period);
+                      setUseCustomRange(false);
+                    }}
+                    className={`px-6 py-2.5 rounded-lg font-medium text-sm transition-all border-2 ${
+                      periodType === period && !useCustomRange
+                        ? "bg-indigo-600 text-white border-indigo-600 shadow-lg"
+                        : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300"
+                    }`}
+                  >
+                    {period === "daily" ? "📅 Hằng Ngày" : period === "weekly" ? "📊 Hàng Tuần" : "📈 Hàng Tháng"}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-3 rounded-full border border-slate-200/80 bg-white py-2 px-4 shadow-sm">
-              <span className="tracking-wide text-sm font-bold text-slate-700">
-                Chọn thời gian:
-              </span>
-              <CustomMonthPicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+
+            {/* Date Range Selection */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-semibold text-slate-900">
+                  Khoảng Thời Gian
+                </label>
+                <div className="flex items-center gap-2">
+                  {(customStartDate || customEndDate) && (
+                    <button
+                      onClick={() => {
+                        setCustomStartDate("");
+                        setCustomEndDate("");
+                        setUseCustomRange(false);
+                      }}
+                      className="text-xs font-medium text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-red-50"
+                    >
+                      <X className="h-3 w-3" />
+                      Reset
+                    </button>
+                  )}
+                  {useCustomRange && (
+                    <button
+                      onClick={() => setUseCustomRange(false)}
+                      className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                    >
+                      Đóng
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {!useCustomRange ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-slate-50 rounded-lg p-3 border border-slate-200">
+                    <p className="text-xs text-slate-600 mb-1">Từ ngày</p>
+                    <p className="font-semibold text-slate-900">{customStartDate || "Không xác định"}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-slate-400" />
+                  <div className="flex-1 bg-slate-50 rounded-lg p-3 border border-slate-200">
+                    <p className="text-xs text-slate-600 mb-1">Đến ngày</p>
+                    <p className="font-semibold text-slate-900">{customEndDate || "Không xác định"}</p>
+                  </div>
+                  <Button
+                    auto
+                    light
+                    onClick={() => setUseCustomRange(true)}
+                    className="text-indigo-600 font-medium"
+                  >
+                    Thay Đổi
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-end gap-3">
+                  <Input
+                    type="date"
+                    label="Từ ngày"
+                    labelPlacement="inside"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Input
+                    type="date"
+                    label="Đến ngày"
+                    labelPlacement="inside"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    auto
+                    color="primary"
+                    onClick={() => setUseCustomRange(false)}
+                  >
+                    Xác Nhận
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Current Range Info */}
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-3 border border-indigo-200/50">
+              <p className="text-xs text-slate-600">
+                <span className="font-semibold text-slate-900 capitalize">{periodType}</span>
+                {" • "}
+                {customStartDate && customEndDate ? (
+                  <span>{customStartDate} - {customEndDate} <span className="ml-2 text-indigo-600 font-medium">(Tùy Chỉnh)</span></span>
+                ) : (
+                  <span className="text-slate-500 italic">Không có khoảng thời gian cụ thể</span>
+                )}
+              </p>
             </div>
           </div>
+
           {isLoading && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
-              <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
-              Đang tải dữ liệu từ API...
+            <div className="mt-4 flex items-center gap-2 text-sm text-slate-600 bg-blue-50 border border-blue-200/50 rounded-lg p-3">
+              <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+              <span>Đang tải dữ liệu...</span>
             </div>
           )}
-        </header>
+        </div>
 
-        <section className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-slate-900">Số lượng voucher</h2>
-            <p className="text-sm text-slate-500">Trường BE: total_voucher, used_voucher, active_voucher, expired_voucher, inactive_voucher</p>
+        {/* Key Metrics - Revenue Section */}
+        <section className="mb-12">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-slate-900">Tổng Quan Doanh Thu</h2>
+            <p className="text-sm text-slate-500 mt-2">Các chỉ số chính về giá trị và doanh thu</p>
           </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <SSEStatBox
-              title="Tổng voucher"
-              value={formatNumber(summaryData.total_voucher)}
-              icon={Ticket}
-              color="blue"
-              description="total_voucher"
-            />
-            <SSEStatBox
-              title="Voucher đã dùng"
-              value={formatNumber(summaryData.used_voucher)}
-              icon={ShoppingCart}
-              color="green"
-              description="used_voucher"
-            />
-            <SSEStatBox
-              title="Voucher đang hoạt động"
-              value={formatNumber(summaryData.active_voucher)}
-              icon={CircleCheck}
-              color="teal"
-              description="active_voucher"
-            />
-            <SSEStatBox
-              title="Voucher hết hạn"
-              value={formatNumber(summaryData.expired_voucher)}
-              icon={CalendarIcon}
-              color="amber"
-              description="expired_voucher"
-            />
-            <SSEStatBox
-              title="Voucher vô hiệu hóa"
-              value={formatNumber(summaryData.inactive_voucher)}
-              icon={Ban}
-              color="red"
-              description="inactive_voucher"
-            />
-          </div>
-        </section>
-
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-slate-900">Giá trị & doanh thu</h2>
-            <p className="text-sm text-slate-500">Trường BE: total_value, used_value, active_value, total_revenue, voucher_sold</p>
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-            <SSEStatBox
-              title="Tổng giá trị"
-              value={formatCurrency(summaryData.total_value)}
-              icon={Wallet}
-              color="indigo"
-              description="total_value"
-            />
-            <SSEStatBox
-              title="Giá trị đã dùng"
-              value={formatCurrency(summaryData.used_value)}
-              icon={Banknote}
-              color="green"
-              description="used_value"
-            />
-            <SSEStatBox
-              title="Giá trị còn hiệu lực"
-              value={formatCurrency(summaryData.active_value)}
-              icon={Wallet}
-              color="teal"
-              description="active_value"
-            />
-            <SSEStatBox
-              title="Tổng doanh thu"
+              title="Tổng Doanh Thu"
               value={formatCurrency(revenueData.total_revenue)}
               icon={Banknote}
               color="purple"
-              description="total_revenue"
+              description="Doanh thu toàn kỳ"
             />
             <SSEStatBox
-              title="Voucher đã bán"
-              value={formatNumber(revenueData.voucher_sold)}
-              icon={ShoppingCart}
-              color="amber"
-              description="voucher_sold"
+              title="Tổng Giá Trị Voucher"
+              value={formatCurrency(summaryData.total_value)}
+              icon={Wallet}
+              color="indigo"
+              description="Giá trị voucher phát hành"
             />
             <SSEStatBox
-              title="Voucher đã dùng (doanh thu)"
-              value={formatNumber(revenueData.voucher_used)}
-              icon={ShoppingCart}
+              title="Giá Trị Đã Sử Dụng"
+              value={formatCurrency(summaryData.used_value)}
+              icon={Banknote}
               color="green"
-              description="voucher_used"
+              description="Giá trị voucher đã dùng"
+            />
+            <SSEStatBox
+              title="Giá Trị Còn Hiệu Lực"
+              value={formatCurrency(summaryData.active_value)}
+              icon={Wallet}
+              color="teal"
+              description="Giá trị còn khả dụng"
             />
           </div>
         </section>
 
-        <section className="grid grid-cols-1 lg:grid-cols-7 gap-8 mb-8">
-          <div className="lg:col-span-3">
-            <TopCustomersChart data={topCustomers} />
+        {/* Charts Section */}
+        <section className="mb-12">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-slate-900">Biểu Đồ & Phân Tích</h2>
+            <p className="text-sm text-slate-500 mt-2">Trend doanh thu và trạng thái voucher</p>
           </div>
-          <div className="lg:col-span-4">
-            <RevenueChart data={revenueSeries} />
-          </div>
-        </section>
-
-        <section className="mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            <div className="lg:col-span-3">
-              <TopCustomersTable data={topCustomers} />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Revenue Chart - Larger */}
+            <div className="lg:col-span-8">
+              <div className="bg-white rounded-xl shadow-md p-6 border border-slate-200/50">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Biểu Đồ Doanh Thu</h3>
+                <RevenueChart data={revenueSeries} />
+              </div>
             </div>
-            <div className="lg:col-span-2">
-              <div className="p-4">
+            {/* Status Chart */}
+            <div className="lg:col-span-4">
+              <div className="bg-white rounded-xl shadow-md p-6 border border-slate-200/50 h-full">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Phân Bố Trạng Thái</h3>
                 <VoucherStatusChart summary={summaryData} />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+        {/* Revenue Details Chart */}
+        {Array.isArray(revenueData.details) && revenueData.details.length > 0 && (
+          <section className="mb-12">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-slate-900">
+                Chi Tiết Doanh Thu 
+                {periodType === "daily" && " Theo Ngày"}
+                {periodType === "weekly" && " Theo Tuần"}
+                {periodType === "monthly" && " Theo Tháng"}
+              </h2>
+              <p className="text-sm text-slate-500 mt-2">Breakdown chi tiết và so sánh</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-md border border-slate-200/50 p-6">
+              <div style={{ height: "400px" }}>
+                <RevenueDetailChart 
+                  data={revenueData.details} 
+                  totalRevenue={revenueData.total_revenue}
+                  period={periodType}
+                />
+              </div>
+              {/* Summary Row */}
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200/50">
+                <div>
+                  <p className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">
+                    {periodType === "daily" ? "Tổng Ngày" : periodType === "weekly" ? "Tổng Tuần" : "Tổng Tháng"}
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900">{revenueData.details.length}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">Tổng Voucher Bán</p>
+                  <p className="text-2xl font-bold text-blue-600">{formatNumber(revenueData.voucher_sold)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">Tổng Doanh Thu</p>
+                  <p className="text-2xl font-bold text-purple-600">{formatCurrency(revenueData.total_revenue)}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Voucher Status Metrics */}
+        <section className="mb-12">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-slate-900">Thống Kê Voucher</h2>
+            <p className="text-sm text-slate-500 mt-2">Số lượng và trạng thái voucher theo danh mục</p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <SSEStatBox
-              title="Tổng lượt quét QR"
-              value={formatNumber(zaloStats.total_scans)}
-              icon={QrCode}
+              title="Tổng Voucher"
+              value={formatNumber(summaryData.total_voucher)}
+              icon={Ticket}
               color="blue"
-              description="total_scans"
+              description="Số lượng tất cả voucher"
             />
             <SSEStatBox
-              title="Người dùng duy nhất"
-              value={formatNumber(zaloStats.unique_users)}
-              icon={Users}
-              color="green"
-              description="unique_users"
-            />
-            <SSEStatBox
-              title="Lượt quét hôm nay"
-              value={formatNumber(zaloStats.scans_today)}
-              icon={Activity}
+              title="Đang Hoạt Động"
+              value={formatNumber(summaryData.active_voucher)}
+              icon={CircleCheck}
               color="teal"
-              description="scans_today"
+              description="Voucher hoạt động"
             />
             <SSEStatBox
-              title="Lượt quét tuần này"
-              value={formatNumber(zaloStats.scans_this_week)}
-              icon={Activity}
+              title="Đã Sử Dụng"
+              value={formatNumber(summaryData.used_voucher)}
+              icon={ShoppingCart}
+              color="green"
+              description="Voucher đã dùng"
+            />
+            <SSEStatBox
+              title="Hết Hạn"
+              value={formatNumber(summaryData.expired_voucher)}
+              icon={CalendarIcon}
               color="amber"
-              description="scans_this_week"
+              description="Voucher đã hết hạn"
             />
             <SSEStatBox
-              title="Lượt quét tháng này"
-              value={formatNumber(zaloStats.scans_this_month)}
-              icon={Activity}
-              color="purple"
-              description="scans_this_month"
+              title="Vô Hiệu Hóa"
+              value={formatNumber(summaryData.inactive_voucher)}
+              icon={Ban}
+              color="red"
+              description="Voucher tắt"
             />
           </div>
+        </section>
 
-          <div className="mt-6 bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-slate-900 mb-3">
-              Top voucher được quét nhiều (Zalo OA)
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {(zaloStats.top_vouchers || []).map((item, index) => {
-                const code =
-                  item.voucher_code ||
-                  item.code ||
-                  item.id ||
-                  item.voucher_id ||
-                  `Voucher ${index + 1}`;
-                const scans =
-                  item.scans ||
-                  item.total_scans ||
-                  item.count ||
-                  item.usage ||
-                  0;
-                return (
-                  <div
-                    key={`${code}-${index}`}
-                    className="border border-slate-200 rounded-lg p-4 shadow-sm bg-slate-50"
-                  >
-                    <p className="text-sm text-slate-500">Mã voucher</p>
-                    <p className="text-lg font-semibold text-slate-900">
-                      {code}
-                    </p>
-                    <p className="text-sm text-slate-600 mt-2">
-                      Lượt quét: {formatNumber(scans)}
-                    </p>
-                  </div>
-                );
-              })}
-              {(!zaloStats.top_vouchers ||
-                !zaloStats.top_vouchers.length) && (
-                <p className="text-sm text-slate-500">
-                  Chưa có dữ liệu top_vouchers
-                </p>
-              )}
+        {/* Sales & Customers */}
+        <section className="mb-12">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-slate-900">Khách Hàng & Bán Hàng</h2>
+            <p className="text-sm text-slate-500 mt-2">Phân tích khách hàng hàng đầu</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Top Customers Table */}
+            <div className="lg:col-span-7">
+              <div className="bg-white rounded-xl shadow-md border border-slate-200/50 p-6 flex flex-col h-[34rem]">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Khách Hàng Hàng Đầu</h3>
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <TopCustomersTable data={topCustomers} />
+                </div>
+              </div>
+            </div>
+            {/* Top Customers Chart */}
+            <div className="lg:col-span-5">
+              <div className="bg-white rounded-xl shadow-md border border-slate-200/50 p-6 flex flex-col h-[34rem]">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Bán Hàng Theo Khách</h3>
+                <div className="flex-1 min-h-0">
+                  <TopCustomersChart data={topCustomers} />
+                </div>
+              </div>
             </div>
           </div>
         </section>
+
+        {/* Zalo Stats Section */}
+        <section className="mb-12">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-slate-900">Thống Kê QR & Zalo OA</h2>
+            <p className="text-sm text-slate-500 mt-2">Lượt quét QR và tương tác từ Zalo Official Account</p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <SSEStatBox
+              title="Tổng Lượt Quét"
+              value={formatNumber(zaloStats.total_scans)}
+              icon={QrCode}
+              color="blue"
+              description="Tổng quét QR"
+            />
+            <SSEStatBox
+              title="Người Dùng Duy Nhất"
+              value={formatNumber(zaloStats.unique_users)}
+              icon={Users}
+              color="green"
+              description="Người dùng khác nhau"
+            />
+            <SSEStatBox
+              title="Quét Hôm Nay"
+              value={formatNumber(zaloStats.scans_today)}
+              icon={Activity}
+              color="teal"
+              description="Lượt quét hôm nay"
+            />
+            <SSEStatBox
+              title="Quét Tuần Này"
+              value={formatNumber(zaloStats.scans_this_week)}
+              icon={Activity}
+              color="amber"
+              description="Lượt quét tuần này"
+            />
+            <SSEStatBox
+              title="Quét Tháng Này"
+              value={formatNumber(zaloStats.scans_this_month)}
+              icon={Activity}
+              color="purple"
+              description="Lượt quét tháng này"
+            />
+          </div>
+        </section>
+
+        {/* Top Vouchers by Scans */}
+        {(zaloStats.top_vouchers && zaloStats.top_vouchers.length > 0) && (
+          <section>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-slate-900">Voucher Được Quét Nhiều Nhất</h2>
+              <p className="text-sm text-slate-500 mt-2">Top vouchers được quét trên Zalo OA</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-md border border-slate-200/50 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {zaloStats.top_vouchers.map((item, index) => {
+                  const code =
+                    item.voucher_code ||
+                    item.code ||
+                    item.id ||
+                    item.voucher_id ||
+                    `Voucher ${index + 1}`;
+                  const scans =
+                    item.scans ||
+                    item.total_scans ||
+                    item.count ||
+                    item.usage ||
+                    0;
+                  return (
+                    <div
+                      key={`${code}-${index}`}
+                      className="relative overflow-hidden border border-slate-200 rounded-lg p-4 bg-gradient-to-br from-slate-50 to-slate-100 hover:shadow-md transition-shadow"
+                    >
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="relative">
+                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Mã Voucher</p>
+                        <p className="text-lg font-bold text-slate-900 mb-3 break-words">
+                          {code}
+                        </p>
+                        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                          <span className="text-xs text-slate-500">Lượt Quét</span>
+                          <span className="text-lg font-bold text-indigo-600">
+                            {formatNumber(scans)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

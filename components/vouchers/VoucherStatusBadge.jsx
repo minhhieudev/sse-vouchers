@@ -7,6 +7,7 @@ const styleMap = {
   running: "bg-blue-50 text-blue-700 border-blue-200",
   scheduled: "bg-indigo-50 text-indigo-700 border-indigo-200",
   completed: "bg-slate-100 text-slate-700 border-slate-200",
+  inactive: "bg-amber-50 text-amber-700 border-amber-200",
   used: "bg-slate-100 text-slate-600 border-slate-200",
   expired: "bg-rose-50 text-rose-700 border-rose-200",
   pending: "bg-amber-50 text-amber-700 border-amber-200",

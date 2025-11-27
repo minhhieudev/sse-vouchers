@@ -16,20 +16,34 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 export function TopCustomersChart({ data }) {
+  const labels = data.map(
+    (customer, index) => customer.name || `Khách hàng ${index + 1}`,
+  );
+
   const chartData = {
-    labels: data.map((customer) => customer.name),
+    labels,
     datasets: [
       {
-        label: "Doanh thu (VND)",
-        data: data.map((customer) => customer.revenue),
+        label: "Tổng giá trị (VND)",
+        data: data.map((customer) => customer.total_value ?? 0),
         backgroundColor: "rgba(59, 130, 246, 0.8)",
         borderColor: "rgba(59, 130, 246, 1)",
         borderWidth: 1,
         borderRadius: 4,
+        yAxisID: "y",
+      },
+      {
+        label: "Số voucher đã dùng",
+        data: data.map((customer) => customer.used ?? 0),
+        backgroundColor: "rgba(16, 185, 129, 0.8)",
+        borderColor: "rgba(16, 185, 129, 1)",
+        borderWidth: 1,
+        borderRadius: 4,
+        yAxisID: "y1",
       },
     ],
   };
@@ -38,12 +52,10 @@ export function TopCustomersChart({ data }) {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: "top",
-      },
+      legend: { position: "top" },
       title: {
         display: true,
-        text: "Top khách hàng theo doanh thu",
+        text: "Top khách hàng sử dụng voucher",
         font: {
           size: 18,
         },
@@ -57,25 +69,42 @@ export function TopCustomersChart({ data }) {
           size: 12,
         },
         callbacks: {
-            label: function(context) {
-                let label = context.dataset.label || '';
-                if (label) {
-                    label += ': ';
-                }
-                if (context.parsed.y !== null) {
-                    label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.y);
-                }
-                return label;
+          label(context) {
+            const isValueAxis = context.dataset.yAxisID === "y";
+            const value = context.parsed.y ?? 0;
+            if (isValueAxis) {
+              return `${context.dataset.label}: ${new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+                maximumFractionDigits: 0,
+              }).format(value)}`;
             }
-        }
+            return `${context.dataset.label}: ${value.toLocaleString("vi-VN")}`;
+          },
+        },
       },
     },
     scales: {
       y: {
         beginAtZero: true,
+        position: "left",
         ticks: {
-          callback: function (value) {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+          callback(value) {
+            return new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+              maximumFractionDigits: 0,
+            }).format(value);
+          },
+        },
+      },
+      y1: {
+        beginAtZero: true,
+        position: "right",
+        grid: { drawOnChartArea: false },
+        ticks: {
+          callback(value) {
+            return value.toLocaleString("vi-VN");
           },
         },
       },

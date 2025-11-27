@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@heroui/button";
-import { Checkbox } from "@heroui/checkbox";
 import { Chip } from "@heroui/chip";
 import { Input } from "@heroui/input";
 import { DatePicker as HeroDatePicker } from "@heroui/date-picker";
@@ -124,7 +123,6 @@ export default function LogsPage() {
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedKeys, setSelectedKeys] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [isQuickSearch, setIsQuickSearch] = useState(false);
 
@@ -197,7 +195,6 @@ export default function LogsPage() {
     setCurrentPage(1);
     setIsQuickSearch(false);
     setSearchTerm("");
-    setSelectedKeys(new Set());
   };
 
   const handleQuickSearch = () => {
@@ -277,11 +274,11 @@ export default function LogsPage() {
       : (currentPage - 1) * Number(filters.size || 0) + index + 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 lg:px-6 lg:py-4">
       {/* Main Content Grid */}
-      <div className="grid gap-4 lg:grid-cols-[minmax(320px,1fr)_minmax(0,2fr)] lg:items-start">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         {/* Sidebar - Actions & Controls */}
-        <div className="space-y-2">
+        <div className="space-y-2 lg:w-[320px] lg:flex-none">
           <div className="bg-gradient-to-br from-indigo-50/50 to-purple-50/50 rounded-2xl p-6 border border-indigo-100/50">
             <h3 className="text-sm font-semibold text-indigo-700 mb-1">
               Tìm kiếm nhanh
@@ -407,7 +404,7 @@ export default function LogsPage() {
                     "rounded-lg border border-slate-200/80 bg-white shadow-sm hover:border-slate-300 focus:border-slate-400 transition-all duration-200",
                 }}
               >
-                <SelectItem key="all">Tất cả hành động</SelectItem>
+                <SelectItem key="all">Tất cả</SelectItem>
                 {ACTION_OPTIONS.map((item) => (
                   <SelectItem key={item}>
                     {getActionMeta(item).label}
@@ -461,7 +458,7 @@ export default function LogsPage() {
                 <Button
                   size="sm"
                   variant="bordered"
-                  startContent={<ListFilter className="h-5 w-5" />}
+                  startContent={<ListFilter className="h-6 w-6" />}
                   onClick={handleResetFilters}
                   className="  border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50/50 transition-all duration-200"
                 >
@@ -470,7 +467,7 @@ export default function LogsPage() {
                 <Button
                   variant="flat"
                   size="sm"
-                  startContent={<Download className="h-5 w-5" />}
+                  startContent={<Download className="h-6 w-6" />}
                   onClick={handleExport}
                   className="bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30 hover:shadow-green-500/60 hover:from-green-600 hover:to-emerald-700 transition-all duration-200"
                 >
@@ -479,7 +476,7 @@ export default function LogsPage() {
                 <Button
                   variant="bordered"
                   size="sm"
-                  startContent={<RefreshCw className="h-5 w-5" />}
+                  startContent={<RefreshCw className="h-6 w-6" />}
                   onClick={() => {
                     queryClient.invalidateQueries({
                       queryKey: voucherLogKeys.lists(),
@@ -495,7 +492,25 @@ export default function LogsPage() {
           </div>
         </div>
         {/* Main Content Area */}
-        <div className="space-y-6">
+        <div className="flex-1 space-y-3">
+          <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Nhật ký voucher</h2>
+              </div>
+              <div className="flex flex-col items-end gap-1 text-right">
+                <div className="hidden text-sm text-slate-500 sm:block">
+                  {totalCount ? `${totalCount} bản ghi` : "Không có dư liệu"}
+                </div>
+                {isBusy && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                    Loading logs...
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           <div className="hidden lg:block">
             <Table
               aria-label="Voucher logs table"
@@ -507,7 +522,6 @@ export default function LogsPage() {
               }}
             >
               <TableHeader>
-                <TableColumn className="w-12"></TableColumn>
                 <TableColumn className="w-16">#</TableColumn>
                 <TableColumn>Thời gian</TableColumn>
                 <TableColumn>Mã voucher</TableColumn>
@@ -526,20 +540,6 @@ export default function LogsPage() {
                   const rowKey = log.id ?? globalIndex(index);
                   return (
                     <TableRow key={rowKey} className="hover:bg-slate-50/60">
-                      <TableCell>
-                        <Checkbox
-                          isSelected={selectedKeys.has(rowKey)}
-                          onValueChange={(isSelected) => {
-                            setSelectedKeys((prev) => {
-                              const next = new Set(prev);
-                              if (isSelected) next.add(rowKey);
-                              else next.delete(rowKey);
-                              return next;
-                            });
-                          }}
-                          size="sm"
-                        />
-                      </TableCell>
                       <TableCell>
                         <span className="text-sm font-semibold text-slate-700 bg-slate-50/80 px-2 py-1 rounded">
                           {globalIndex(index)}
@@ -605,22 +605,8 @@ export default function LogsPage() {
                   className="rounded-xl border border-slate-200/70 p-3 bg-white shadow-sm"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        isSelected={selectedKeys.has(rowKey)}
-                        onValueChange={(isSelected) => {
-                          setSelectedKeys((prev) => {
-                            const next = new Set(prev);
-                            if (isSelected) next.add(rowKey);
-                            else next.delete(rowKey);
-                            return next;
-                          });
-                        }}
-                        size="sm"
-                      />
-                      <div className="text-sm font-semibold text-slate-800">
-                        #{globalIndex(index)} - {log.voucher_code || "--"}
-                      </div>
+                    <div className="text-sm font-semibold text-slate-800">
+                      #{globalIndex(index)} - {log.voucher_code || "--"}
                     </div>
                     <Chip size="sm" variant="flat" color={meta.color}>
                       {meta.label}
@@ -656,15 +642,9 @@ export default function LogsPage() {
             )}
           </div>
 
-          {isBusy && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
-              <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
-              Loading logs...
-            </div>
-          )}
 
           {!isQuickSearch && totalCount > 0 && (
-            <div className="mt-6 flex flex-col md:flex-row items-center justify-between gap-4 px-2">
+            <div className="mt-3 flex flex-col md:flex-row items-center justify-between gap-4 px-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-500">Hiển thị</span>
                 <Select

@@ -18,26 +18,58 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
+const toCurrency = (value = 0) =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
+
 export function RevenueChart({ data }) {
+  const labels = data.map(
+    (stat, index) =>
+      stat.label ||
+      stat.date ||
+      stat.period ||
+      stat.period_label ||
+      stat.start_date ||
+      `P${index + 1}`,
+  );
+
   const chartData = {
-    labels: data.map((stat) => stat.date),
+    labels,
     datasets: [
       {
-        label: "Doanh thu (triệu VND)",
-        data: data.map((stat) => stat.revenue),
+        label: "Tổng doanh thu (VND)",
+        data: data.map(
+          (stat) =>
+            stat.total_revenue ??
+            stat.revenue ??
+            stat.totalValue ??
+            stat.value ??
+            0,
+        ),
         borderColor: "rgb(59, 130, 246)",
         backgroundColor: "rgba(59, 130, 246, 0.5)",
-        yAxisID: 'y',
+        yAxisID: "y",
       },
       {
-        label: "Lượt sử dụng Voucher",
-        data: data.map((stat) => stat.vouchersUsed),
+        label: "Số voucher bán/đã dùng",
+        data: data.map(
+          (stat) =>
+            stat.voucher_sold ??
+            stat.voucher_used ??
+            stat.vouchersUsed ??
+            stat.used ??
+            stat.count ??
+            0,
+        ),
         borderColor: "rgb(16, 185, 129)",
         backgroundColor: "rgba(16, 185, 129, 0.5)",
-        yAxisID: 'y1',
+        yAxisID: "y1",
       },
     ],
   };
@@ -46,8 +78,8 @@ export function RevenueChart({ data }) {
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
-        mode: 'index',
-        intersect: false,
+      mode: "index",
+      intersect: false,
     },
     plugins: {
       legend: {
@@ -55,10 +87,10 @@ export function RevenueChart({ data }) {
       },
       title: {
         display: true,
-        text: "Xu hướng Doanh thu & Lượt sử dụng Voucher (7 ngày gần nhất)",
+        text: "Xu hướng doanh thu voucher",
         font: {
-            size: 18,
-        }
+          size: 18,
+        },
       },
       tooltip: {
         backgroundColor: "rgba(0, 0, 0, 0.7)",
@@ -68,38 +100,56 @@ export function RevenueChart({ data }) {
         bodyFont: {
           size: 12,
         },
+        callbacks: {
+          label(context) {
+            const isValueAxis = context.dataset.yAxisID === "y";
+            const value = context.parsed.y ?? 0;
+            if (isValueAxis) return `${context.dataset.label}: ${toCurrency(value)}`;
+            return `${context.dataset.label}: ${value.toLocaleString("vi-VN")}`;
+          },
+        },
       },
     },
     scales: {
-        y: {
-            type: 'linear',
-            display: true,
-            position: 'left',
-            title: {
-                display: true,
-                text: 'Doanh thu (triệu VND)'
-            }
+      y: {
+        type: "linear",
+        display: true,
+        position: "left",
+        title: {
+          display: true,
+          text: "Doanh thu (VND)",
         },
-        y1: {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            title: {
-                display: true,
-                text: 'Lượt sử dụng'
-            },
-            grid: {
-                drawOnChartArea: false, // only draw grid lines for the first Y axis
-            },
+        ticks: {
+          callback(value) {
+            return toCurrency(value);
+          },
         },
-    }
+      },
+      y1: {
+        type: "linear",
+        display: true,
+        position: "right",
+        title: {
+          display: true,
+          text: "Số voucher",
+        },
+        grid: {
+          drawOnChartArea: false,
+        },
+        ticks: {
+          callback(value) {
+            return value.toLocaleString("vi-VN");
+          },
+        },
+      },
+    },
   };
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <div style={{ height: "400px" }}>
-            <Line options={options} data={chartData} />
-        </div>
+      <div style={{ height: "400px" }}>
+        <Line options={options} data={chartData} />
+      </div>
     </div>
   );
 }

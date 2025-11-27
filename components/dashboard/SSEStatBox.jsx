@@ -1,4 +1,4 @@
-import { Card, CardBody } from "@heroui/card";
+﻿import { Card, CardBody } from "@heroui/card";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 export default function SSEStatBox({
@@ -121,7 +121,7 @@ export default function SSEStatBox({
               <span className="text-xs font-bold">{trendValue}</span>
             </div>
             <span className="text-xs font-medium text-slate-600">
-              vs tháng trước
+              so với tháng trước
             </span>
           </div>
         )}
